@@ -1,9 +1,6 @@
-
 # Overview
 
-This is a ratcheting forward secrecy protocol that works in synchronous and asynchronous messaging 
-environments.  The protocol overview is available [here](https://github.com/trevp/axolotl/wiki),
-and the details of the wire format are available [here](https://github.com/WhisperSystems/TextSecure/wiki/ProtocolV2).
+A ratcheting forward secrecy protocol that works in synchronous and asynchronous messaging environments.
 
 ## PreKeys
 
@@ -15,7 +12,7 @@ PreKeys, and transmit all of them to the server.
 
 ## Sessions
 
-The axolotl protocol is session-oriented.  Clients establish a "session," which is then used for
+Signal Protocol is session-oriented.  Clients establish a "session," which is then used for
 all subsequent encrypt/decrypt operations.  There is no need to ever tear down a session once one
 has been established.
 
@@ -23,7 +20,7 @@ Sessions are established in one of three ways:
 
 1. PreKeyBundles. A client that wishes to send a message to a recipient can establish a session by
    retrieving a PreKeyBundle for that recipient from the server.
-1. PreKeyWhisperMessages.  A client can receive a PreKeyWhisperMessage from a recipient and use it
+1. PreKeySignalMessages.  A client can receive a PreKeySignalMessage from a recipient and use it
    to establish a session.
 1. KeyExchangeMessages.  Two clients can exchange KeyExchange messages to establish a session.
 
@@ -40,70 +37,73 @@ State is kept in the following places:
 1. Signed PreKey States. Clients will need to maintain the state of their signed PreKeys.
 1. Session State.  Clients will need to maintain the state of the sessions they have established.
 
-# Using libaxolotl
+# Using libsignal-protocol
 
 ## Configuration
 
 On Android:
 
-```
+```groovy
 dependencies {
-  compile 'org.whispersystems:axolotl-android:(latest version number)'
+  compile 'org.whispersystems:signal-protocol-android:(latest version number)'
 }
 ```
 
 For pure Java apps:
 
-```
+```xml
 <dependency>
   <groupId>org.whispersystems</groupId>
-  <artifactId>axolotl-java</artifactId>
+  <artifactId>signal-protocol-java</artifactId>
   <version>(latest version number)</version>
 </dependency>
 ```
 
 ## Install time
 
-At install time, a libaxolotl client needs to generate its identity keys, registration id, and
+At install time, a libsignal client needs to generate its identity keys, registration id, and
 prekeys.
 
-    IdentityKeyPair    identityKeyPair = KeyHelper.generateIdentityKeyPair();
-    int                registrationId  = KeyHelper.generateRegistrationId();
-    List<PreKeyRecord> preKeys         = KeyHelper.generatePreKeys(startId, 100);
-    PreKeyRecord       lastResortKey   = KeyHelper.generateLastResortKey();
-    SignedPreKeyRecord signedPreKey    = KeyHelper.generateSignedPreKey(identityKeyPair, 5);
+ ```java
+ IdentityKeyPair    identityKeyPair = KeyHelper.generateIdentityKeyPair();
+ int                registrationId  = KeyHelper.generateRegistrationId();
+ List<PreKeyRecord> preKeys         = KeyHelper.generatePreKeys(startId, 100);
+ SignedPreKeyRecord signedPreKey    = KeyHelper.generateSignedPreKey(identityKeyPair, 5);
 
-    // Store identityKeyPair somewhere durable and safe.
-    // Store registrationId somewhere durable and safe.
+ // Store identityKeyPair somewhere durable and safe.
+ // Store registrationId somewhere durable and safe.
 
-    // Store preKeys in PreKeyStore.
-    // Store signed prekey in SignedPreKeyStore.
-
+ // Store preKeys in PreKeyStore.
+ // Store signed prekey in SignedPreKeyStore.
+ ```
+    
 ## Building a session
 
-A libaxolotl client needs to implement four interfaces: IdentityKeyStore, PreKeyStore, 
+A libsignal client needs to implement four interfaces: IdentityKeyStore, PreKeyStore,
 SignedPreKeyStore, and SessionStore.  These will manage loading and storing of identity, 
 prekeys, signed prekeys, and session state.
 
 Once those are implemented, building a session is fairly straightforward:
 
-    SessionStore      sessionStore      = new MySessionStore();
-    PreKeyStore       preKeyStore       = new MyPreKeyStore();
-    SignedPreKeyStore signedPreKeyStore = new MySignedPreKeyStore();
-    IdentityKeyStore  identityStore     = new MyIdentityKeyStore();
+ ```java
+ SessionStore      sessionStore      = new MySessionStore();
+ PreKeyStore       preKeyStore       = new MyPreKeyStore();
+ SignedPreKeyStore signedPreKeyStore = new MySignedPreKeyStore();
+ IdentityKeyStore  identityStore     = new MyIdentityKeyStore();
 
-    // Instantiate a SessionBuilder for a remote recipientId + deviceId tuple.
-    SessionBuilder sessionBuilder = new SessionBuilder(sessionStore, preKeyStore, signedPreKeyStore,
-                                                       identityStore, recipientId, deviceId);
+ // Instantiate a SessionBuilder for a remote recipientId + deviceId tuple.
+ SessionBuilder sessionBuilder = new SessionBuilder(sessionStore, preKeyStore, signedPreKeyStore,
+                                                    identityStore, recipientId, deviceId);
 
-    // Build a session with a PreKey retrieved from the server.
-    sessionBuilder.process(retrievedPreKey);
+ // Build a session with a PreKey retrieved from the server.
+ sessionBuilder.process(retrievedPreKey);
 
-    SessionCipher     sessionCipher = new SessionCipher(sessionStore, recipientId, deviceId);
-    CiphertextMessage message      = sessionCipher.encrypt("Hello world!".getBytes("UTF-8"));
+ SessionCipher     sessionCipher = new SessionCipher(sessionStore, recipientId, deviceId);
+ CiphertextMessage message      = sessionCipher.encrypt("Hello world!".getBytes("UTF-8"));
 
-    deliver(message.serialize());
-
+ deliver(message.serialize());
+ ```
+    
 # Legal things
 ## Cryptography Notice
 
@@ -116,7 +116,7 @@ The form and manner of this distribution makes it eligible for export under the 
 
 ## License
 
-Copyright 2013-2015 Open Whisper Systems
+Copyright 2013-2019 Open Whisper Systems
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 
